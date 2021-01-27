@@ -11,7 +11,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from AnimeGANv2.tools.init_net import weights_init
+from tools.init_net import weights_init
 
 class ResidualBlock(nn.Module):
 
@@ -54,7 +54,7 @@ class Generator(nn.Module):
             nn.Conv2d(in_channels=nf*4, out_channels=nf*4, kernel_size=3, stride=1, padding=1),
             nn.InstanceNorm2d(nf*4),
             nn.ReLU(True)
-        )        
+        )
 
         # residual blocks #
         residualBlocks = []

@@ -11,7 +11,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from AnimeGANv2.config.config import device,dataset_mean,dataset_std
+from config.config import device,dataset_mean,dataset_std
 import copy
 
 def gram_matrix(input):

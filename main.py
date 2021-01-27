@@ -8,10 +8,10 @@
     :license: MIT, see LICENSE for more details.
 """
 
-from AnimeGANv2.AnimeGAN import AnimeGAN
+from AnimeGAN import AnimeGAN
 import argparse
 import os
-from AnimeGANv2.tools.utils import check_folder
+from tools.utils import check_folder
 
 def get_parser():
     parser = argparse.ArgumentParser(description="Parameters of AnimeGAN")

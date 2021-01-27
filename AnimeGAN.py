@@ -8,13 +8,13 @@
     :license: MIT, see LICENSE for more details.
 """
 
-from AnimeGANv2.tools.data_loader import ImageDataset
+from tools.data_loader import ImageDataset
 from torch.utils.data import Dataset,DataLoader
-from AnimeGANv2.net.discriminator_cartoon import Discriminator
-from AnimeGANv2.net.generator_cartoon import Generator
-from AnimeGANv2.loss.discriminatorloss_cartoon import DiscriminatorLoss
-from AnimeGANv2.loss.generatorloss_cartoon import GeneratorLoss
-from AnimeGANv2.config.config import device
+from net.discriminator_cartoon import Discriminator
+from net.generator_cartoon import Generator
+from loss.discriminatorloss_cartoon import DiscriminatorLoss
+from loss.generatorloss_cartoon import GeneratorLoss
+from config.config import device
 import torch.optim as optim
 import torch
 import time
@@ -22,7 +22,7 @@ import os
 import numpy as np
 from PIL import Image
 import torchvision.transforms as transforms
-from AnimeGANv2.tools.init_net import weights_init
+from tools.init_net import weights_init
 import torchvision.models as models
 
 class AnimeGAN(object) :
@@ -86,6 +86,8 @@ class AnimeGAN(object) :
         #optim
         self.d_optimizer = optim.Adam(self.discriminator.parameters(),self.d_lr, [self.beta1, self.beta2])
         self.g_optimizer = optim.Adam(self.generator.parameters(),self.g_lr, [self.beta1, self.beta2])
+        self.G_scheduler = optim.lr_scheduler.MultiStepLR(optimizer=self.g_optimizer, milestones=[self.epoch // 2, self.epoch // 4 * 3], gamma=0.1)
+        self.D_scheduler = optim.lr_scheduler.MultiStepLR(optimizer=self.d_optimizer, milestones=[self.epoch // 2, self.epoch // 4 * 3], gamma=0.1)
 
     def train(self):
         """
@@ -145,6 +147,10 @@ class AnimeGAN(object) :
                 gloss.backward()
                 self.g_optimizer.step()
                 g_losses.append(gloss.item())
+
+            # tune learning rate
+            self.G_scheduler.step()
+            self.D_scheduler.step()
 
             # Print the train info here
             now = time.time()

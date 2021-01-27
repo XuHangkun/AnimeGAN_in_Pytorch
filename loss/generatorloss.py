@@ -11,7 +11,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-from AnimeGANv2.config.config import device,dataset_mean,dataset_std
+from config.config import device,dataset_mean,dataset_std
 import copy
 
 def gram_matrix(input):
@@ -33,7 +33,7 @@ def gram_matrix(input):
 
 def rgb2yuv(rgb):
     rgb_ = rgb.transpose(1,3)                              # input is batch_size*3*n*n   default
-    A = torch.tensor([[0.299, -0.14714119,0.61497538], 
+    A = torch.tensor([[0.299, -0.14714119,0.61497538],
                       [0.587, -0.28886916, -0.51496512],
                       [0.114, 0.43601035, -0.10001026]]).to(device, torch.float)   # from  Wikipedia
     yuv = torch.tensordot(rgb_,A,1).transpose(1,3)
@@ -58,7 +58,7 @@ class GeneratorLoss(nn.Module):
         self.w_gra = w_gra
         self.w_col = w_col
         self.w_tv = w_tv
-    
+
     def _cut_vgg(self,vgg):
         cnn = copy.deepcopy(vgg)
         # normalization module
@@ -120,7 +120,7 @@ class GeneratorLoss(nn.Module):
                 torch.ones(discriminator_output_of_generated_image_input.shape).to(device, torch.float)
             )
         return g_loss_generated
-    
+
     def _con_loss(self,real_img,generated_image):
         """
         compute content loss
@@ -129,7 +129,7 @@ class GeneratorLoss(nn.Module):
         output_fvgg_generated_in = self.feature_extractor(generated_image)
         g_con_loss = self.l1_loss(output_fvgg_real_in,output_fvgg_generated_in)
         return g_con_loss
-    
+
     def _gra_loss(self,generated_image,grey_image):
         """
         compute gram loss
@@ -138,7 +138,7 @@ class GeneratorLoss(nn.Module):
         output_fvgg_grey_in = gram_matrix(self.feature_extractor(grey_image))
         g_gra_loss = self.l1_loss(output_fvgg_generated_in,output_fvgg_grey_in)
         return g_gra_loss
-    
+
     def _col_loss(self,real_image,generated_image):
         """
         compute color loss
@@ -151,7 +151,7 @@ class GeneratorLoss(nn.Module):
         col_loss += self.huber_loss(real_image[:,1,:,:],generated_image[:,1,:,:])
         col_loss += self.huber_loss(real_image[:,2,:,:],generated_image[:,2,:,:])
         return col_loss
-    
+
     def _tv_loss(self,generated_image):
         """
         A smooth loss in fact. Like the smooth prior in MRF.
@@ -160,7 +160,7 @@ class GeneratorLoss(nn.Module):
         dw = self.mse_loss(generated_image[..., :-1],generated_image[...,1:])
         dh = self.mse_loss(generated_image[...,:-1,:],generated_image[..., 1:, :])
         return dh + dw
-        
+
 
 def test():
     """

@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from AnimeGANv2.tools.init_net import weights_init
+from tools.init_net import weights_init
 
 class Discriminator(nn.Module):
     """
