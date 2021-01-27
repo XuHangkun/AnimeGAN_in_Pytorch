@@ -1,0 +1,9 @@
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.pth
+logs
+__pycache__
+subJob.sh
