@@ -7,11 +7,6 @@
 * numpy
 * PIL
 
-## Set the enviroment
-```bash
-$ source setup.sh
-```
-
 ## Training the model
 * Train weight with initialization
 ```bash
