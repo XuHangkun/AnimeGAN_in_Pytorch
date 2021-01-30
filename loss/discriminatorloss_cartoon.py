@@ -17,7 +17,7 @@ class DiscriminatorLoss(nn.Module):
     """
     def __init__(self,w_adv=1.0):
         super(DiscriminatorLoss, self).__init__()
-        self.bce_loss = nn.BCELoss()
+        self.loss = nn.MSELoss()
 
     def forward(self,
         discriminator_output_of_cartoon_input,
@@ -25,17 +25,17 @@ class DiscriminatorLoss(nn.Module):
         discriminator_output_of_generated_image_input
         ):
 
-        d_loss_carton = self.bce_loss(
+        d_loss_carton = self.loss(
                 discriminator_output_of_cartoon_input,
                 torch.ones(discriminator_output_of_cartoon_input.shape).to(device, torch.float)
             )
 
-        d_loss_generated = self.bce_loss(
+        d_loss_generated = self.loss(
                 discriminator_output_of_generated_image_input,
                 torch.zeros(discriminator_output_of_generated_image_input.shape).to(device, torch.float)
             )
 
-        d_loss_carton_smooth = self.bce_loss(
+        d_loss_carton_smooth = self.loss(
                 discriminator_output_of_cartoon_smooth_input,
                 torch.zeros(discriminator_output_of_cartoon_smooth_input.shape).to(device, torch.float)
             )

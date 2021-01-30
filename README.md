@@ -10,12 +10,12 @@
 ## Training the model
 * Train weight with initialization
 ```bash
-$ python main.py --contain_init_phase  --phase train --epoch 30 --style Hayao
+$ python main.py --contain_init_phase  --phase train --epoch 100 --style Hayao
 ```
 
 * Train weight normally
 ```bash
-$ python main.py --load_model --phase train --epoch 70 --style Hayao
+$ python main.py --load_model --phase train --epoch 100 --style Hayao
 ```
 
 ## Test the model

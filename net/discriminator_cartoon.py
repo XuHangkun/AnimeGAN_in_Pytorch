@@ -29,17 +29,14 @@ class Discriminator(nn.Module):
             nn.Conv2d(nf * 8, nf * 8, 3, 1, 1),
             nn.InstanceNorm2d(nf * 8),
             nn.LeakyReLU(0.2, True),
-            nn.Conv2d(nf * 8, out_nc, 3, 1, 1),
-            nn.Sigmoid(),
+            nn.Conv2d(nf * 8, out_nc, 3, 1, 1)
         )
 
-        weights_init(self)
+        #weights_init(self)
 
     # forward method
-    def forward(self, input):
-        # input = torch.cat((input1, input2), 1)
-        output = self.convs(input)
-
+    def forward(self, x):
+        output = self.convs(x)
         return output
 
 def test():

@@ -24,6 +24,7 @@ from PIL import Image
 import torchvision.transforms as transforms
 from tools.init_net import weights_init
 import torchvision.models as models
+from tools.img_process import img_ud_concat
 
 class AnimeGAN(object) :
     """
@@ -40,6 +41,7 @@ class AnimeGAN(object) :
         self.load_model_from_file = args.load_model
         self.checkpoint_dir = args.checkpoint_dir
         self.result_dir = args.result_dir
+        self.test_dir = args.test_dir
         self.log_dir = args.log_dir
         self.style = args.style
 
@@ -69,6 +71,7 @@ class AnimeGAN(object) :
         self.img_unloader = transforms.Compose([
                 transforms.ToPILImage()
             ])
+
         self.realimg_dataset = ImageDataset("./dataset/train_photo",transform=self.img_loader)
         self.anime_dataset = ImageDataset('./dataset/{}'.format(self.style + '/style'),transform=self.img_loader)
         self.anime_smooth_dataset = ImageDataset('./dataset/{}'.format(self.style + '/smooth'),transform=self.img_loader)
@@ -81,7 +84,9 @@ class AnimeGAN(object) :
 
         #loss
         self.d_loss = DiscriminatorLoss().to(device)
-        self.g_loss = GeneratorLoss().to(device)
+        self.g_loss = GeneratorLoss(
+                w_adv=self.g_adv_weight,
+                w_con=self.con_weight).to(device)
 
         #optim
         self.d_optimizer = optim.Adam(self.discriminator.parameters(),self.d_lr, [self.beta1, self.beta2])
@@ -110,30 +115,26 @@ class AnimeGAN(object) :
                 batch_size = photo_images["color_img"].size(0)
                 photo_images = photo_images["color_img"].to(device)
                 cartoon_grey_images = cartoon_images["grey_img"].to(device)
-                cartoon_smooth_grey_images = smoothed_cartoon_images["grey_img"].to(device)
-                smoothed_cartoon_images = smoothed_cartoon_images["color_img"].to(device)
                 cartoon_images = cartoon_images["color_img"].to(device)
+                cartoon_smooth_grey_images = smoothed_cartoon_images["grey_img"].to(device)
+                cartoon_smooth_images = smoothed_cartoon_images["color_img"].to(device)
 
                 #train the discriminator
-                if not (self.contain_init_phase and (epoch < self.init_epoch)):
-                    self.d_optimizer.zero_grad()
-                    discriminator_output_of_cartoon_input = self.discriminator(cartoon_images)
-                    discriminator_output_of_cartoon_smooth_input = self.discriminator(smoothed_cartoon_images)
-                    discriminator_output_of_generated_cartoon_input = self.discriminator(self.generator(cartoon_images))
-                    discriminator_output_of_cartoon_grey_input = self.discriminator(cartoon_grey_images)
-                    discriminator_output_of_cartoon_smooth_grey_input = self.discriminator(cartoon_smooth_grey_images)
-                    dloss = self.d_loss(
-                        discriminator_output_of_cartoon_input,
-                        #discriminator_output_of_cartoon_grey_input,
-                        discriminator_output_of_cartoon_smooth_input,
-                        discriminator_output_of_generated_cartoon_input
-                    )
-                    dloss.backward()
-                    self.d_optimizer.step()
-                else:
-                    dloss = torch.Tensor([0.0])
+                self.d_optimizer.zero_grad()
+                discriminator_output_of_cartoon_input = self.discriminator(cartoon_images)
+                discriminator_output_of_cartoon_smooth_input = self.discriminator(cartoon_smooth_images)
+                discriminator_output_of_generated_cartoon_input = self.discriminator(self.generator(photo_images))
+                discriminator_output_of_cartoon_grey_input = self.discriminator(cartoon_grey_images)
+                discriminator_output_of_cartoon_smooth_grey_input = self.discriminator(cartoon_smooth_grey_images)
+                dloss = self.d_loss(
+                    discriminator_output_of_cartoon_input,
+                    #discriminator_output_of_cartoon_grey_input,
+                    discriminator_output_of_cartoon_smooth_input,
+                    discriminator_output_of_generated_cartoon_input
+                )
+                dloss.backward()
+                self.d_optimizer.step()
                 d_losses.append(dloss.item())
-
 
                 #train the generator
                 self.g_optimizer.zero_grad()
@@ -248,7 +249,7 @@ class AnimeGAN(object) :
         Test image in test
         """
         self.generator.eval()
-        test_dir = os.path.join(os.getcwd(),"dataset/test/test_photo")
+        test_dir = os.path.join(os.getcwd(),self.test_dir)
         res_dir = os.path.join(os.getcwd(),self.result_dir,self.style)
         if not os.path.isdir(res_dir):
             os.makedirs(res_dir)
@@ -268,6 +269,8 @@ class AnimeGAN(object) :
 
             img = Image.open(path_full)
             g_img = self.transfer(img)
+            ## cancat the imgs
+            g_img = img_ud_concat([g_img,img],(360,360))
             if epoch:
                 save_name = self.style + "_epoch%d"%(epoch)+"_%d.png"%(count+1)
             else:

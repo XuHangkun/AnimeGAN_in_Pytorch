@@ -44,7 +44,7 @@ class GeneratorLoss(nn.Module):
     """
     Module of generator loss
     """
-    def __init__(self,w_adv=1.,w_con = 1,w_tv=1.0,is_init_phase=False):
+    def __init__(self,w_adv=1.,w_con = 10.,w_tv=1.0,is_init_phase=False):
         super(GeneratorLoss,self).__init__()
         #load vgg as feature extractor
         self.vgg19 = models.vgg19(pretrained=True).to(device)
@@ -67,7 +67,7 @@ class GeneratorLoss(nn.Module):
         generated_image,
         ):
         if self.is_init_phase:
-            loss = self._con_loss(real_image,generated_image)
+            loss = self.w_con*self._con_loss(real_image,generated_image)
         else:
             loss = self.w_adv*self._adv_loss(discriminator_output_of_generated_image_input)
             loss += self.w_con*self._con_loss(real_image,generated_image)
@@ -79,7 +79,7 @@ class GeneratorLoss(nn.Module):
         """
         compute adversial loss
         """
-        g_loss_generated = self.bce_loss(
+        g_loss_generated = self.mse_loss(
                 discriminator_output_of_generated_image_input,
                 torch.ones(discriminator_output_of_generated_image_input.shape).to(device, torch.float)
             )

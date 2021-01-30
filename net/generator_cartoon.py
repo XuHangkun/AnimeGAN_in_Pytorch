@@ -39,7 +39,7 @@ class Generator(nn.Module):
     Generator of AnimeGAN
     """
 
-    def __init__(self,in_nc=3,out_nc=3,nf=32,nb=6):
+    def __init__(self,in_nc=3,out_nc=3,nf=64,nb=8):
         super(Generator,self).__init__()
 
         self.down_convs = nn.Sequential(
@@ -76,14 +76,14 @@ class Generator(nn.Module):
             nn.Tanh()
         )
 
-        weights_init(self)
+        #weights_init(self)
 
     def forward(self,x):
-        x = self.down_convs(x)
-        x = self.res(x)
-        x = self.up_convs(x)
+        xx = self.down_convs(x)
+        xx = self.res(xx)
+        xx = self.up_convs(xx)
 
-        return x
+        return xx
 
 def test():
     """
