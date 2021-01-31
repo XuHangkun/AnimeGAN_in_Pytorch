@@ -28,23 +28,23 @@ class ImageDataset(Dataset):
         self.paths = self.get_image_paths_train(image_dir)
         self.num_images = len(self.paths)
         self.transform = transform
-    
+
     def __len__(self):
         return self.num_images
-    
+
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
-        
+
         color_img,grey_img = self.read_image(self.paths[idx])
 
         sample = {"color_img":color_img,"grey_img":grey_img}
-        
+
         if self.transform:
             sample["color_img"] = self.transform(sample["color_img"])
             sample["grey_img"] = self.transform(sample["grey_img"])
         return sample
-        
+
 
     def get_image_paths_train(self, image_dir):
 
@@ -91,20 +91,21 @@ class ImageDataset(Dataset):
             image2 = Image.fromarray(np.uint8(image2))
 
         return image1, image2
-    
+
 def test():
     """
     Test ImageDataset
     """
     loader = transforms.Compose([
-            transforms.Resize((128,128)),
+            transforms.Resize((256,int(256*1.7777))),
             transforms.ToTensor(),
                 transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
     unloader = transforms.Compose([
                 transforms.ToPILImage()
             ])
-    img_dir = "/hpcfs/juno/junogpu/xuhangkun/ML/MyselfProject/Tiktok/AnimeGANv2/dataset/Hayao/style"
+    img_dir = os.path.join(os.getcwd(),"dataset/FHFE/style")
+    print(img_dir)
     dataset = ImageDataset(img_dir,transform=loader)
     print("Image Numbers :",len(dataset))
     sample = dataset[1]
@@ -118,7 +119,7 @@ def test():
         print(i_batch, sample_batched['color_img'].size(),sample_batched['grey_img'].size())
         print(sample_batched['color_img'][0,0,:,:])
         print(sample_batched['grey_img'][0,0,:,:])
-    color_img = sample_batched["color_img"][0]
+    color_img = sample_batched["grey_img"][0]
     color_img = color_img.squeeze(0)
     color_img = (color_img + 1 )/2
     color_img = unloader(color_img)

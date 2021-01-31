@@ -29,9 +29,9 @@ def get_parser():
     parser.add_argument('--g_lr', type=float, default=0.0002, help='The learning rate')
     parser.add_argument('--d_lr', type=float, default=0.0002, help='The learning rate')
 
-    parser.add_argument('--g_adv_weight', type=float, default=2.0, help='Weight about GAN')
-    parser.add_argument('--d_adv_weight', type=float, default=2.0, help='Weight about GAN')
-    parser.add_argument('--con_weight', type=float, default=1.0, help='Weight about VGG19')# 1.5 for Hayao, 2.0 for Paprika, 1.2 for Shinkai
+    parser.add_argument('--g_adv_weight', type=float, default=300.0, help='Weight about GAN')
+    parser.add_argument('--d_adv_weight', type=float, default=300.0, help='Weight about GAN')
+    parser.add_argument('--con_weight', type=float, default=1.5, help='Weight about VGG19')# 1.5 for Hayao, 2.0 for Paprika, 1.2 for Shinkai
     # ------ the follow weight used in AnimeGAN
     parser.add_argument('--sty_weight', type=float, default=2.5, help='Weight about style')# 2.5 for Hayao, 0.6 for Paprika, 2.0 for Shinkai
     parser.add_argument('--color_weight', type=float, default=10., help='Weight about color') # 15. for Hayao, 50. for Paprika, 10. for Shinkai

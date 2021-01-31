@@ -32,6 +32,7 @@ def gram_matrix(input):
 
 
 def rgb2yuv(rgb):
+    rgb = (rgb + 1)/2.0
     rgb_ = rgb.transpose(1,3)                              # input is batch_size*3*n*n   default
     A = torch.tensor([[0.299, -0.14714119,0.61497538],
                       [0.587, -0.28886916, -0.51496512],
@@ -44,7 +45,7 @@ class GeneratorLoss(nn.Module):
     """
     Module of generator loss
     """
-    def __init__(self,w_adv=1.,w_con = 10.,w_tv=1.0,is_init_phase=False):
+    def __init__(self,w_adv=300.,w_con = 1.5,w_tv=1.0,w_gra=3.,w_col=10.0,is_init_phase=False):
         super(GeneratorLoss,self).__init__()
         #load vgg as feature extractor
         self.vgg19 = models.vgg19(pretrained=True).to(device)
@@ -58,6 +59,8 @@ class GeneratorLoss(nn.Module):
         self.bce_loss = nn.BCELoss()
         self.w_adv = w_adv
         self.w_con = w_con
+        self.w_gra = w_gra
+        self.w_col = w_col
         self.w_tv = w_tv
         self.is_init_phase = is_init_phase
 
@@ -65,13 +68,16 @@ class GeneratorLoss(nn.Module):
         discriminator_output_of_generated_image_input,
         real_image,
         generated_image,
+        grey_image
         ):
         if self.is_init_phase:
             loss = self.w_con*self._con_loss(real_image,generated_image)
         else:
             loss = self.w_adv*self._adv_loss(discriminator_output_of_generated_image_input)
             loss += self.w_con*self._con_loss(real_image,generated_image)
-
+            loss += self.w_col*self._col_loss(real_image,generated_image)
+            if True:
+                loss += self.w_gra*self._gra_loss(generated_image,grey_image)
         return loss
 
 
@@ -141,7 +147,7 @@ def test():
     yuv = rgb2yuv(img)
     print(yuv.shape)
     g_loss = GeneratorLoss(is_init_phase=True)
-    print(g_loss(d_img,img,generated_img))
+    print(g_loss(d_img,img,generated_img,img))
 
     # test by feature
     feature_net = g_loss.feature_extractor

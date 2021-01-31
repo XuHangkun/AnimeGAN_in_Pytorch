@@ -15,14 +15,16 @@ class DiscriminatorLoss(nn.Module):
     """
     Module of discriminator loss
     """
-    def __init__(self,w_adv=1.0):
+    def __init__(self,w_adv=300.0):
         super(DiscriminatorLoss, self).__init__()
         self.loss = nn.MSELoss()
+        self.w_adv=w_adv
 
     def forward(self,
         discriminator_output_of_cartoon_input,
         discriminator_output_of_cartoon_smooth_input,
-        discriminator_output_of_generated_image_input
+        discriminator_output_of_generated_image_input,
+        discriminator_output_of_cartoon_smooth_grey_input
         ):
 
         d_loss_carton = self.loss(
@@ -40,7 +42,12 @@ class DiscriminatorLoss(nn.Module):
                 torch.zeros(discriminator_output_of_cartoon_smooth_input.shape).to(device, torch.float)
             )
 
-        d_loss = 1.0*d_loss_carton + d_loss_generated + 1.0*d_loss_carton_smooth
+        d_loss = self.w_adv*d_loss_carton + d_loss_generated + 1.0*d_loss_carton_smooth
+        if True:
+            d_loss += 0.1*self.loss(
+                    discriminator_output_of_cartoon_smooth_grey_input,
+                    torch.zeros(discriminator_output_of_cartoon_smooth_grey_input.shape).to(device, torch.float)
+                    )
         return d_loss
 
 

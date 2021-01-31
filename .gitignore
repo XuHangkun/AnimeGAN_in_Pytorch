@@ -3,8 +3,13 @@
 *.jpeg
 *.gif
 *.mp4
+*.avi
+*.mkv
 *.pth
 logs
 __pycache__
 subJob.sh
 *.sh
+results
+logs
+dataset

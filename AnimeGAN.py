@@ -83,10 +83,12 @@ class AnimeGAN(object) :
         self.generator, self.discriminator = self.load_model(self.load_model_from_file)
 
         #loss
-        self.d_loss = DiscriminatorLoss().to(device)
+        self.d_loss = DiscriminatorLoss(w_adv=self.d_adv_weight).to(device)
         self.g_loss = GeneratorLoss(
                 w_adv=self.g_adv_weight,
-                w_con=self.con_weight).to(device)
+                w_con=self.con_weight,
+                w_gra=self.sty_weight,
+                w_col=self.color_weight).to(device)
 
         #optim
         self.d_optimizer = optim.Adam(self.discriminator.parameters(),self.d_lr, [self.beta1, self.beta2])
@@ -128,9 +130,9 @@ class AnimeGAN(object) :
                 discriminator_output_of_cartoon_smooth_grey_input = self.discriminator(cartoon_smooth_grey_images)
                 dloss = self.d_loss(
                     discriminator_output_of_cartoon_input,
-                    #discriminator_output_of_cartoon_grey_input,
                     discriminator_output_of_cartoon_smooth_input,
-                    discriminator_output_of_generated_cartoon_input
+                    discriminator_output_of_generated_cartoon_input,
+                    discriminator_output_of_cartoon_smooth_grey_input
                 )
                 dloss.backward()
                 self.d_optimizer.step()
@@ -143,7 +145,8 @@ class AnimeGAN(object) :
                 gloss = self.g_loss(
                     discriminator_output_of_generated_cartoon_input,
                     photo_images,
-                    generated_cartoon
+                    generated_cartoon,
+                    cartoon_grey_images
                 )
                 gloss.backward()
                 self.g_optimizer.step()

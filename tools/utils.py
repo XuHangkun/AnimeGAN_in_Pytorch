@@ -1,6 +1,8 @@
 from tools.adjust_brightness import adjust_brightness_from_src_to_dst, read_img
 import os,cv2
 import numpy as np
+import torchvision.transforms as transforms
+import torch
 
 
 def load_test_data(image_path, size):
@@ -11,21 +13,25 @@ def load_test_data(image_path, size):
     return img
 
 def preprocessing(img, size):
+    """
+    scale the cv img to size
+    convert the img to tensor
+    convert the img tensor within (-1,1)
+    """
     h, w = img.shape[:2]
-    if h <= size[0]:
-        h = size[0]
-    else:
-        x = h % 32
-        h = h - x
+    ratio = size*1.0 / h
+    h = int(h*ratio)
+    w = int(w*ratio)
 
-    if w < size[1]:
-        w = size[1]
-    else:
-        y = w % 32
-        w = w - y
     # the cv2 resize func : dsize format is (W ,H)
     img = cv2.resize(img, (w, h))
-    return img/127.5 - 1.0
+    img = np.asarray(img)
+    # H x W x C -> C x H x W
+    #img = np.transpose(img,[2,0,1])
+    img = transforms.ToTensor()(img).unsqueeze(0)
+    # preprocess, (-1, 1)
+    img = -1 + 2 * img
+    return img
 
 
 def save_images(images, image_path, photo_path = None):
@@ -37,8 +43,8 @@ def save_images(images, image_path, photo_path = None):
 
 def inverse_transform(images):
     images = (images + 1.) / 2 * 255
-    # The calculation of floating-point numbers is inaccurate, 
-    # and the range of pixel values must be limited to the boundary, 
+    # The calculation of floating-point numbers is inaccurate,
+    # and the range of pixel values must be limited to the boundary,
     # otherwise, image distortion or artifacts will appear during display.
     images = np.clip(images, 0, 255)
     return images.astype(np.uint8)
@@ -57,7 +63,7 @@ def random_crop(img1, img2, crop_H, crop_W):
     # The crop width cannot exceed the original image crop width
     if crop_W > w:
         crop_W = w
-    
+
     # Crop height
     if crop_H > h:
         crop_H = h
