@@ -1,3 +1,5 @@
+[[_TOC_]]
+
 # AnimeGAN in Pytorch
 
 ## Requirement
